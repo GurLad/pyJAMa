@@ -6,7 +6,7 @@ from sys import exit
 from termcolor import cprint
 
 from LDJAM_API.LDJAM_API import get_event_themes, get_current_event_id, get_user_votes
-from LDJAM_API.Voting import start_general_voting, VotingExitReason, start_bulk_voting
+from LDJAM_API.Voting import start_general_voting, VotingExitReason, start_bulk_voting, downvote_all_lower
 from util.CONSTANTS import CONFIG_FILE
 from util.Config import load_config, save_config, delete_config
 from util.ConsoleFunctions import clear_console, print_file, print_version_info
@@ -23,7 +23,7 @@ def main_menu():
         unvoted_theme_count = len(themes) - len(user_votes)
 
         # default valid selections
-        valid_selections = ['1', '2', '3']
+        valid_selections = ['1', '2', '3', '4']
 
         clear_console()
 
@@ -53,10 +53,11 @@ def main_menu():
         # print default main menu
         print('[1] Start list theme voting')
         print('[2] Start keyword theme voting')
-        print('[3] Exit')
+        print('[3] Downvote all lowercase themes')
+        print('[4] Exit')
 
         if update_check_result == UpdateCheckResult.UPDATE_AVAILABLE:
-            print('[4] Download Update')
+            print('[5] Download Update')
 
         print()
 
@@ -105,14 +106,33 @@ def main_menu():
                     ', wait a few minutes and try again.', 'red')
 
                 exit()
+                
+        # downvote all lowercase themes
+        if selection == '3':
+            voting_result = downvote_all_lower(themes, user_votes)
+            
+            # handle error
+            if voting_result == VotingExitReason.GENERAL_ERROR:
+                # voting failed for some reason. abort and tell the user
+                clear_console()
+
+                cprint(
+                    'An error occurred during the voting process. This probably means the API is overloaded or you lost '
+                    'internet connection.',
+                    'red')
+                cprint(
+                    'The program will now terminate. Check your internet connection and try again. If voting still fails'
+                    ', wait a few minutes and try again.', 'red')
+
+                exit()
 
         # exit program
-        if selection == '3':
+        if selection == '4':
             print('Goodbye. Keep jamming!')
             exit()
 
         # download and apply update (this is only accessible if an update is actually available)
-        if selection == '4':
+        if selection == '5':
             download_update(new_update_version)
             exit()
 

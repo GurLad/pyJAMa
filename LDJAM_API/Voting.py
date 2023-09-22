@@ -337,3 +337,80 @@ def start_bulk_voting(themes: dict, voted_themes: dict):
 
                     if len(themes) - (len(local_voted_themes) + len(voted_themes)) == 0:
                         return VotingExitReason.NO_MORE_THEMES
+
+def downvote_all_lower(themes: dict, voted_themes: dict):
+    # array for themes we voted on while in the function
+    local_voted_themes = []
+
+    # init array for keyword matching themes
+    display_themes = []
+
+    # how many unvoted themes are left
+    unvoted_themes = len(themes) - (len(voted_themes) + len(local_voted_themes))
+
+    # immediately return if no themes are left
+    if unvoted_themes == 0:
+        return VotingExitReason.NO_MORE_THEMES
+
+    while 1:
+        # make voting pretty
+        clear_console()
+        print_file('files/logo.txt')
+        print_file('files/voting_explanation.txt')
+        print()
+
+        # show how many votes are left
+        print(f'UNVOTED THEMES LEFT: {unvoted_themes}\n')
+
+        # show controls
+        print_file('files/voting_commands.txt')
+        print()
+
+        display_themes.clear()
+
+        # loop through all themes
+        for theme in themes:
+
+            # skip already voted themes
+            if theme in voted_themes:
+                continue
+            if theme in local_voted_themes:
+                continue
+
+            if not themes.get(theme)[0].isupper():
+                display_themes.append(theme)
+        
+        # assign indices to found themes to allow select voting
+        theme_index = 0
+
+        for theme in display_themes:
+            theme_index += 1
+            print(f'[{theme_index}] {themes.get(theme)}')
+        print()
+        
+        # downvote all
+        theme_index = 0
+
+        for theme in display_themes:
+
+            theme_index += 1
+
+            if True:
+                print(f'Voting NO on theme "{themes.get(theme)}"')
+                vote_result = vote_theme(theme, 'no')
+
+                if vote_result != 0:
+                    # there was an error posting vote
+                    return VotingExitReason.GENERAL_ERROR
+
+                local_voted_themes.append(theme)
+
+                # update unvoted counter
+                unvoted_themes -= 1
+
+                sleep(1)
+
+                if unvoted_themes == 0:
+                    return VotingExitReason.NO_MORE_THEMES
+        break
+    
